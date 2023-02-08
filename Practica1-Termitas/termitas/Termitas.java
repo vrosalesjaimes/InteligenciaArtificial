@@ -28,7 +28,7 @@ public class Termitas extends PApplet {
     int ancho = 150;        // Anchura (en celdas) de la cuadricula.
     int celda = 4;          // Tamanio de cada celda cuadrada (en pixeles).
     int termitas = 200;      // Cantidad de termitas dentro del modelo.
-    float densidad = 0.0f;   // Proporcion de astilla en el modelo (con probabilidad de 0 a 1).
+    float densidad = 0.2f;   // Proporcion de astilla en el modelo (con probabilidad de 0 a 1).
     ModeloTermitas modelo;  // El objeto que representa el modelo de termitas.
 
     /**
@@ -308,12 +308,11 @@ public class Termitas extends PApplet {
          * @return Entero que representa la dirección aleatoria escogida.
          */
         int direccionAleatoriaFrente(int direccion) {
-            // ##### IMPLEMENTACION #####
-            // Ejemplo: Si recibes de parametro el valor '3' significa que la
-            // termita está mirando hacia la derecha por lo que puede caminar
-            // aleatoriamente hacia los valores 2, 3 ó 4 (representando
-            // izquierda, adelante y derecha).
-            return rnd.nextInt(8);
+            int numeroAleatorio = rnd.nextInt(3) - 1;
+            int dir = (direccion + numeroAleatorio)%8;
+            if(dir < 0)
+                dir += 8;
+            return dir;
         }
 
         /**
@@ -328,10 +327,50 @@ public class Termitas extends PApplet {
          * en otro caso.
          */
         boolean hayAstilla(Termita t, int dir) {
-            // ##### IMPLEMENTACION #####
-            return false;
-            // Hint: El parametro direccion solo puede ser un valor entre 0-7.
-            // Hint: mundo[t.posY][t.posX].estado Nos indica si hay una astilla en la misma posicion que la termita.
+            int x = 0;
+            int y= 0;
+            
+            switch(dir){
+                case 0:
+                    x = (t.posX-1)%ancho;
+                    y = (t.posY-1)%alto;
+                    break;
+                case 1:
+                    x = (t.posX)%ancho;
+                    y = (t.posY-1)%alto;
+                    break;
+                case 2:
+                    x = (t.posX+1)%ancho;
+                    y = (t.posY-1)%alto;
+                    break;
+                case 3:
+                    x = (t.posX+1)%ancho;
+                    y = (t.posY)%alto;
+                    break;
+                case 4:
+                    x = (t.posX+1)%ancho;
+                    y = (t.posY+1)%alto;
+                    break;
+                case 5:
+                    x = (t.posX)%ancho;
+                    y = (t.posY+1)%alto;
+                    break;
+                case 6:
+                    x = (t.posX-1)%ancho;
+                    y = (t.posY+1)%alto;
+                    break;
+                case 7:
+                    x = (t.posX-1)%ancho;
+                    y = (t.posY)%alto;
+                break;
+            }
+
+            if(x < 0) 
+                x += ancho;
+            if(y < 0) 
+                y += alto;
+            
+            return mundo[y][x].estado;
         }
 
         /**
@@ -347,10 +386,9 @@ public class Termitas extends PApplet {
          * autorganizacion mas rapido.
          */
         void dejarAstilla(Termita t, int dir) {
-            // ##### IMPLEMENTACION #####
-            // Hint: Indicar en el mundo que hay una astilla, indicar a la termita que 
-            //       está cargando una astilla y mover a la termita
-            //       en la dirección opuesta a la que está mirando (variable 'dir')
+            mundo[t.posY][t.posX].estado = true;
+            t.cargando = false;
+            moverTermita(t, (t.direccion+4)%8);
         }
 
         /**
@@ -361,8 +399,9 @@ public class Termitas extends PApplet {
          * cuadricula.
          */
         void dejarAstilla(Termita t) {
-            // ##### IMPLEMENTACION ######
-            // Hint: Marcar casilla para indicar la astilla, indicar que la termita carga una astilla y moverTermita aleatoriamente.
+            mundo[t.posY][t.posX].estado = true;
+            t.cargando = false;
+            moverTermita(t, rnd.nextInt(8));
         }
 
         /**
@@ -374,8 +413,13 @@ public class Termitas extends PApplet {
          * @param t La termita que va a soltar astilla en el modelo.
          */
         void dejarAstillaConSalto(Termita t) {
-            // ##### IMPLEMENTACION #####
-            // Hint: MArcar casilla con astilla, indicar que la termina ya no carga una astilla y asignar una nueva posicion a la termita.
+            t.cargando = false;
+            mundo[t.posY][t.posX].estado = true;
+
+            do{
+                t.posX = rnd.nextInt(ancho);
+                t.posY = rnd.nextInt(alto);
+            }while(mundo[t.posY][t.posX].estado);
         }
 
         /**
@@ -386,8 +430,9 @@ public class Termitas extends PApplet {
          * moverse en la dirección indicada.
          */
         void tomarAstilla(Termita t, int dir) {
-            // ##### IMPLEMENTACION #####
-            // Hint: Mover a la termita, quitar la astilla del mundo e indicar que la termita carga la astilla.
+            moverTermita(t, dir);
+            mundo[t.posY][t.posX].estado = false;
+            t.cargando = true;
         }
 
         /**
